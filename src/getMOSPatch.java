@@ -471,7 +471,7 @@ public class getMOSPatch {
     }
 
     // Method to download all files from URLs in DownloadFiles Map
-    private static void DownloadAllFIles() throws Exception {
+    private static void DownloadAllFiles() throws Exception {
         try {
             System.out.println();
             if (!PatchFileList.isEmpty()) {
@@ -537,7 +537,7 @@ public class getMOSPatch {
                         BuildDLFileList(p, parameters.get("regexp"));
                     }
                     //Download all files
-                    DownloadAllFIles();
+                    DownloadAllFiles();
                     // Output if no patches were chosen
                 } else {
                     System.out.println("\nNo patch numbers are specified.");
