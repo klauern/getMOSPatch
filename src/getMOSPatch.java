@@ -70,14 +70,10 @@ import java.util.regex.Pattern;
 public class getMOSPatch {
     //Constants section
     private static final int BUFFER_SIZE = 8192;
-    private static final int PROGRESS_INTERVAL = 1 * 1024 * 1024;
+    private static final int PROGRESS_INTERVAL = 1024 * 1024;
     private static final char[] pchar = {
         '-', '\\', '|', '/'
     };
-
-    // some variables, that will be used for returning from classes.
-    private static String outputstring;
-    private static InputStream iStream;
 
     // I'll store the passed parameters in this Map
     private static Map < String, String > parameters;
@@ -120,14 +116,14 @@ public class getMOSPatch {
     // Prepares the inputstream for HTTP downloads (webpages and files too)
     // "Heavily inspired" from Nathan Reynolds' post post: http://stackoverflow.com/revisions/26046079/2
     private static InputStream getHttpInputStream(String url) throws Exception {
+        InputStream iStream;
         try {
-            URL resourceUrl, base, next;
+            URL base, next;
             HttpURLConnection conn;
             String location;
             location = url;
 
             while (true) {
-                resourceUrl = new URL(url);
                 conn = (HttpURLConnection)(new URL(location).openConnection());
                 conn.setConnectTimeout(30000);
                 conn.setReadTimeout(60000);
@@ -144,7 +140,7 @@ public class getMOSPatch {
                 }
                 break;
             }
-            iStream = (InputStream) conn.getInputStream();
+            iStream = conn.getInputStream();
         } catch (Exception e) {
             throw e;
         }
@@ -158,7 +154,7 @@ public class getMOSPatch {
             int filesize = 0, printsize = 0;
             long time_ms1, time_ms2;
             String progrdata = " ";
-            InputStream content = (InputStream) getHttpInputStream(url);
+            InputStream content = getHttpInputStream(url);
             BufferedReader in = new BufferedReader(new InputStreamReader(content));
             FileOutputStream outputStream = new FileOutputStream(filename);
 
@@ -197,7 +193,7 @@ public class getMOSPatch {
             } else {
                 System.out.print("\b");
             }
-            // close the sreams
+            // close the streams
             content.close();
             outputStream.close();
         } catch (Exception e) {
@@ -235,6 +231,7 @@ public class getMOSPatch {
 
     // downloads from URL into a String
     private static String DownloadString(String url) throws Exception {
+        String outputstring;
         try {
             DownloadFile(url, ".getMOSPatch.tmp");
             outputstring = new ReadFile(".getMOSPatch.tmp").getContent();
@@ -281,7 +278,7 @@ public class getMOSPatch {
 
     // Method to populate the
     private static void Platforms() throws Exception {
-        String getMOSPatchcfg = "", s, listplatforms = "";
+        String getMOSPatchcfg = "", s, listplatforms;
         // this map is used to store platform/language codes and description from MOS.
         Map < String, String > platforms = new HashMap < String, String > ();
 
@@ -362,7 +359,7 @@ public class getMOSPatch {
     // this method prepares the list of file download URLs
     private static void BuildDLFileList(String patch, String regx) throws Exception {
         try {
-            String patchDetails = "", DLPatchHTML = "", DLPatchHTML2 = "", PatchSelector = "";
+            String DLPatchHTML, DLPatchHTML2, PatchSelector;
             boolean pprotected;
             Pattern regex2;
             Matcher regexMatcher2;
@@ -455,10 +452,7 @@ public class getMOSPatch {
                     for (Map.Entry < Integer, String > dlurl: PatchFileList.entrySet()) {
                         DownloadFiles.put(++DownloadFilesCounter, dlurl.getValue());
                     }
-                } else if (PatchSelector.equals("")) {
-                    // Nothing needs to be done
-                    // Otherwise put only the chosen ones in the DownloadFiles Map
-                } else {
+                } else if (PatchSelector.contains(",")){
                     for (String p: PatchSelector.split(",")) {
                         DownloadFiles.put(++DownloadFilesCounter, PatchFileList.get(Integer.parseInt(p)));
                     }
@@ -524,7 +518,7 @@ public class getMOSPatch {
                 Authenticator.setDefault(new CustomAuthenticator());
 
                 //Logs on to MOS, and initiates the Authenticator and the SSL session
-                String waste = DownloadString("https://updates.oracle.com/Orion/SimpleSearch/switch_to_saved_searches");
+                DownloadString("https://updates.oracle.com/Orion/SimpleSearch/switch_to_saved_searches");
 
                 // Initiate platforms list to download the patches for
                 if (parameters.containsKey("patch") || (parameters.containsKey("reset") && parameters.get("reset").equals("yes"))) {
