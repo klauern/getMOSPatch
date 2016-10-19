@@ -489,7 +489,7 @@ public class getMOSPatch {
         }
     }
 
-    public static void setProxyEnvironment() throws URISyntaxException {
+    private static void setProxyEnvironment() throws URISyntaxException {
         String http_proxy = System.getenv("http_proxy");
         if (http_proxy.length() > 0) {
             URI http_proxy_url = new URI(http_proxy);
