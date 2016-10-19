@@ -79,14 +79,14 @@ public class getMOSPatch {
     private static Map < String, String > parameters;
 
     // ConfiguredPlatforms holds the list of configured Platforms/Languages
-    private static Map < String, String > ConfiguredPlatforms = new HashMap < String, String > ();
+    private static final Map < String, String > ConfiguredPlatforms = new HashMap < String, String > ();
 
     // DownloadFiles contains URLs to download
-    private static Map < Integer, String > DownloadFiles = new TreeMap < Integer, String > ();
+    private static final Map < Integer, String > DownloadFiles = new TreeMap < Integer, String > ();
     private static int DownloadFilesCounter = 0;
 
     // Intermediate MAP that populates the URLs for specific patch for the time inputs are collected.
-    private static Map < Integer, String > PatchFileList = new TreeMap < Integer, String > ();
+    private static final Map < Integer, String > PatchFileList = new TreeMap < Integer, String > ();
 
     //Authenticator that requests the username password inputs
     private static class CustomAuthenticator extends Authenticator {
@@ -244,14 +244,14 @@ public class getMOSPatch {
     }
 
     // Validates that all values in the passed comma separated string exists in the Map<Integer, String>
-    private static boolean CheckInputsTree(String inputs, Map < Integer, String > ArrayOfValues) {
+    private static boolean CheckInputsTree(String inputs) {
         // special processing for "all", as it's processed later
         if (inputs.equals("") || inputs.equals("all")) {
             return true;
         }
         for (String p: inputs.split(",")) {
             try {
-                if (ArrayOfValues.get(Integer.parseInt(p)) == null) {
+                if (getMOSPatch.PatchFileList.get(Integer.parseInt(p)) == null) {
                     return false;
                 }
                 // Any error in this method means the inputs were invalid, so just return false!
@@ -410,7 +410,6 @@ public class getMOSPatch {
             for (Map.Entry < Integer, String > dlurl: PatchFileList.entrySet()) {
                 System.out.println(" " + dlurl.getKey() + " - " + dlurl.getValue().split("process_form/")[1].split(".zip")[0] + ".zip");
             }
-            PatchSelector = "";
             // if parameter "download=all" was specified, don't ask for inputs, but download all files. This is especially useful in combination with "regexp" parameter
             if (parameters.containsKey("download") && parameters.get("download").equals("all") && !PatchFileList.isEmpty()) {
                 // downlaod all files here
@@ -422,7 +421,7 @@ public class getMOSPatch {
             } else {
                 Console console = System.console();
                 PatchSelector = console.readLine(" Enter Comma separated files to download: ");
-                while (!CheckInputsTree(PatchSelector, PatchFileList)) {
+                while (!CheckInputsTree(PatchSelector)) {
                     System.out.println("  ERROR: Unparsable inputs. Try Again.");
                     PatchSelector = console.readLine(" Enter Comma separated files to download: ");
                 }
