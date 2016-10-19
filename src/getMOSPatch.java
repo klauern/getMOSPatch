@@ -61,9 +61,12 @@ Example:            To download OPatch for 11gR2 database on Linux x86-64:
 */
 
 // Using only the basic stuff that's included in JRE, to minimize the prerequisites
+
 import java.io.*;
 import java.net.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,21 +75,21 @@ public class getMOSPatch {
     private static final int BUFFER_SIZE = 8192;
     private static final int PROGRESS_INTERVAL = 1024 * 1024;
     private static final char[] pchar = {
-        '-', '\\', '|', '/'
+            '-', '\\', '|', '/'
     };
 
     // I'll store the passed parameters in this Map
-    private static Map < String, String > parameters;
+    private static Map<String, String> parameters;
 
     // ConfiguredPlatforms holds the list of configured Platforms/Languages
-    private static final Map < String, String > ConfiguredPlatforms = new HashMap < String, String > ();
+    private static final Map<String, String> ConfiguredPlatforms = new HashMap<String, String>();
 
     // DownloadFiles contains URLs to download
-    private static final Map < Integer, String > DownloadFiles = new TreeMap < Integer, String > ();
+    private static final Map<Integer, String> DownloadFiles = new TreeMap<Integer, String>();
     private static int DownloadFilesCounter = 0;
 
     // Intermediate MAP that populates the URLs for specific patch for the time inputs are collected.
-    private static final Map < Integer, String > PatchFileList = new TreeMap < Integer, String > ();
+    private static final Map<Integer, String> PatchFileList = new TreeMap<Integer, String>();
 
     //Authenticator that requests the username password inputs
     private static class CustomAuthenticator extends Authenticator {
@@ -123,7 +126,7 @@ public class getMOSPatch {
         location = url;
 
         while (true) {
-            conn = (HttpURLConnection)(new URL(location).openConnection());
+            conn = (HttpURLConnection) (new URL(location).openConnection());
             conn.setConnectTimeout(30000);
             conn.setReadTimeout(60000);
             conn.setInstanceFollowRedirects(false); // Make the logic below easier to detect redirections
@@ -195,6 +198,7 @@ public class getMOSPatch {
     // reads a file and returns a string
     private static class ReadFile {
         String everything;
+
         ReadFile(String filename) throws IOException {
             int i = 0;
             BufferedReader br = new BufferedReader(new FileReader(filename));
@@ -211,6 +215,7 @@ public class getMOSPatch {
             br.close();
             //Pass the exception up for processing. We want to terminate if it breaks here.
         }
+
         String getContent() {
             return everything;
         }
@@ -222,16 +227,16 @@ public class getMOSPatch {
         DownloadFile(url, ".getMOSPatch.tmp");
         outputstring = new ReadFile(".getMOSPatch.tmp").getContent();
         boolean deleted = new File(".getMOSPatch.tmp").delete();
-        if (!deleted){
+        if (!deleted) {
             throw new Exception("File '.getMOSPatch.tmp' not deleted");
         }
         return outputstring;
     }
 
     // Validates that all values in the passed comma separated string exists in the Map<String, String>
-    private static boolean CheckInputs(String inputs, Map < String, String > ArrayOfValues) {
+    private static boolean CheckInputs(String inputs, Map<String, String> ArrayOfValues) {
         try {
-            for (String p: inputs.split(",")) {
+            for (String p : inputs.split(",")) {
                 if (ArrayOfValues.get(p) == null) {
                     return false;
                 }
@@ -249,7 +254,7 @@ public class getMOSPatch {
         if (inputs.equals("") || inputs.equals("all")) {
             return true;
         }
-        for (String p: inputs.split(",")) {
+        for (String p : inputs.split(",")) {
             try {
                 if (getMOSPatch.PatchFileList.get(Integer.parseInt(p)) == null) {
                     return false;
@@ -266,7 +271,7 @@ public class getMOSPatch {
     private static void Platforms() throws Exception {
         String getMOSPatchcfg = "", s, listplatforms;
         // this map is used to store platform/language codes and description from MOS.
-        Map < String, String > platforms = new HashMap < String, String > ();
+        Map<String, String> platforms = new HashMap<String, String>();
 
         // Reading the .getMOSPatch.cfg file into getMOSPatchcfg variable if the file exists
         try {
@@ -291,7 +296,7 @@ public class getMOSPatch {
             Pattern regex = Pattern.compile("<select name=plat_lang.*</select>", Pattern.DOTALL);
             Matcher regexMatcher = regex.matcher(s);
             if (regexMatcher.find()) {
-                for (String oneline: regexMatcher.group(0).split("\\r?\\n")) {
+                for (String oneline : regexMatcher.group(0).split("\\r?\\n")) {
                     if (oneline.contains("option") && !oneline.contains("selected")) {
                         if (parameters.get("platform") == null) {
                             System.out.println(oneline.split("\"")[1] + " - " + oneline.split(">")[1]);
@@ -320,20 +325,20 @@ public class getMOSPatch {
 
             // Write the configuration to the .getMOSPatch.cfg file
             PrintWriter writer = new PrintWriter(".getMOSPatch.cfg", "UTF-8");
-            for (String r: listplatforms.split(",")) {
+            for (String r : listplatforms.split(",")) {
                 ConfiguredPlatforms.put(r, platforms.get(r));
                 writer.println(r + ";" + platforms.get(r));
             }
             writer.close();
             // if the config file existed, simply read the inputs from it.
         } else {
-            for (String r: getMOSPatchcfg.split("\\r?\\n")) {
+            for (String r : getMOSPatchcfg.split("\\r?\\n")) {
                 ConfiguredPlatforms.put(r.split(";")[0], r.split(";")[1]);
             }
         }
         // Output the configured platforms.
         System.out.println("\nWe're going to download patches for the following Platforms/Languages:");
-        for (Map.Entry < String, String > entry: ConfiguredPlatforms.entrySet()) {
+        for (Map.Entry<String, String> entry : ConfiguredPlatforms.entrySet()) {
             System.out.println(" " + entry.getKey() + " - " + entry.getValue());
         }
     }
@@ -349,7 +354,7 @@ public class getMOSPatch {
         PatchFileList.clear();
         int PatchFileListCounter = 0;
         // Iterate through the list of platforms and languages
-        for (Map.Entry < String, String > platform: ConfiguredPlatforms.entrySet()) {
+        for (Map.Entry<String, String> platform : ConfiguredPlatforms.entrySet()) {
             // keeps the password protection status
             pprotected = false;
             System.out.println();
@@ -362,7 +367,7 @@ public class getMOSPatch {
             Pattern regex = Pattern.compile("https://.+?Download/process_form/[^\"]*.zip[^\"]*");
             Matcher regexMatcher = regex.matcher(DLPatchHTML);
             while (regexMatcher.find()) {
-                for (String oneline: regexMatcher.group(0).split("\\r?\\n")) {
+                for (String oneline : regexMatcher.group(0).split("\\r?\\n")) {
                     if (oneline.split("process_form/")[1].split(".zip")[0].matches(regx)) {
                         PatchFileList.put(++PatchFileListCounter, oneline);
                     }
@@ -379,7 +384,7 @@ public class getMOSPatch {
             regex = Pattern.compile("javascript:showDetails.\"/Orion/PatchDetails/process_form.+?Download Multi Part Patch");
             regexMatcher = regex.matcher(DLPatchHTML);
             while (regexMatcher.find()) {
-                for (String oneline: regexMatcher.group(0).split("\\r?\\n")) {
+                for (String oneline : regexMatcher.group(0).split("\\r?\\n")) {
                     // Download the patch detail page
                     DLPatchHTML2 = DownloadString("https://updates.oracle.com" + oneline.split("\"")[1]);
 
@@ -387,7 +392,7 @@ public class getMOSPatch {
                     regex2 = Pattern.compile("https://.+?Download/process_form/[^\"]*.zip[^\"]*");
                     regexMatcher2 = regex2.matcher(DLPatchHTML2);
                     while (regexMatcher2.find()) {
-                        for (String oneline2: regexMatcher2.group(0).split("\\r?\\n")) {
+                        for (String oneline2 : regexMatcher2.group(0).split("\\r?\\n")) {
                             if (oneline2.split("process_form/")[1].split(".zip")[0].matches(regx)) {
                                 PatchFileList.put(++PatchFileListCounter, oneline2);
                             }
@@ -407,7 +412,7 @@ public class getMOSPatch {
                 System.out.println(" No files available");
             }
             //Produce the list of found files if anything was found
-            for (Map.Entry < Integer, String > dlurl: PatchFileList.entrySet()) {
+            for (Map.Entry<Integer, String> dlurl : PatchFileList.entrySet()) {
                 System.out.println(" " + dlurl.getKey() + " - " + dlurl.getValue().split("process_form/")[1].split(".zip")[0] + ".zip");
             }
             // if parameter "download=all" was specified, don't ask for inputs, but download all files. This is especially useful in combination with "regexp" parameter
@@ -428,11 +433,11 @@ public class getMOSPatch {
             }
             // if "all" patches need to be downloaded - put them all in the DownloadFiles Map
             if (PatchSelector.equals("all")) {
-                for (Map.Entry < Integer, String > dlurl: PatchFileList.entrySet()) {
+                for (Map.Entry<Integer, String> dlurl : PatchFileList.entrySet()) {
                     DownloadFiles.put(++DownloadFilesCounter, dlurl.getValue());
                 }
-            } else if (PatchSelector.contains(",")){
-                for (String p: PatchSelector.split(",")) {
+            } else if (PatchSelector.contains(",")) {
+                for (String p : PatchSelector.split(",")) {
                     DownloadFiles.put(++DownloadFilesCounter, PatchFileList.get(Integer.parseInt(p)));
                 }
             }
@@ -446,7 +451,7 @@ public class getMOSPatch {
         if (!PatchFileList.isEmpty()) {
             System.out.println("Downloading all selected files:");
             //iterate through the URLs in the TreeMap
-            for (Map.Entry < Integer, String > d: DownloadFiles.entrySet()) {
+            for (Map.Entry<Integer, String> d : DownloadFiles.entrySet()) {
                 System.out.print(" ");
                 DownloadFile(d.getValue(), d.getValue().split("process_form/")[1].split(".zip")[0] + ".zip");
             }
@@ -475,11 +480,11 @@ public class getMOSPatch {
             setProxyEnvironment();
 
             //Populate the parameters map
-            parameters = new HashMap < String, String > ();
+            parameters = new HashMap<String, String>();
             parameters.put("regexp", ".*");
             if (args.length > 0) {
-            //will only consider parameters that contain "=", the rest is ignored
-                for (String s: args) {
+                //will only consider parameters that contain "=", the rest is ignored
+                for (String s : args) {
                     if (s.contains("=")) {
                         parameters.put(s.split("=")[0], s.split("=")[1]);
                     }
@@ -499,7 +504,7 @@ public class getMOSPatch {
 
                 // Iterate through the requested patches and download them one by one
                 if (parameters.containsKey("patch")) {
-                    for (String p: parameters.get("patch").split(",")) {
+                    for (String p : parameters.get("patch").split(",")) {
                         BuildDLFileList(p, parameters.get("regexp"));
                     }
                     //Download all files
