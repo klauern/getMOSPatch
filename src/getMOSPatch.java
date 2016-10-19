@@ -152,7 +152,7 @@ public class getMOSPatch {
         InputStream content = getHttpInputStream(url);
         FileOutputStream outputStream = new FileOutputStream(filename);
 
-        int bytesRead = -1, iterator = 0;
+        int bytesRead, iterator = 0;
         byte[] buffer = new byte[BUFFER_SIZE];
         // I'm using this hardcoded filename from webpage download.
         if (!filename.equals(".getMOSPatch.tmp")) {
@@ -418,8 +418,7 @@ public class getMOSPatch {
                 System.out.println(" All files will be downloadad because download=all was specified.");
                 PatchSelector = "all";
             } else if (PatchFileList.isEmpty()) {
-                // Nothing needs to be done
-                //Ask for inputs and validate them
+                continue;
             } else {
                 Console console = System.console();
                 PatchSelector = console.readLine(" Enter Comma separated files to download: ");
